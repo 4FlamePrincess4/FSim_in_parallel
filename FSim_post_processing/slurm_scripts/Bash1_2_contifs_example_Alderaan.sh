@@ -21,7 +21,7 @@ mkdir ../okwen_foa1c_r16_LF2016/SeasonFires_merged_tifs_LF2016/
 source /data001/projects/sindewal/anaconda3/bin/activate r_env2
 
 # Run the R script
-/data001/projects/sindewal/anaconda3/envs/r_env2/bin/Rscript FSim_post_processing1_merge_fire_tifs_v11_Scenario_refact_of_the_Nordgren.R \
+/data001/projects/sindewal/anaconda3/envs/r_env2/bin/Rscript FSim_post_processing1_2_merge_fire_tifs_v11_2_Scenario_refact_of_the_Nordgren.R \
 --foa_lcp_path ./_inputs/lcp/lf2019_200_foa1c_120m.tif \
 --working_directory /data001/projects/sindewal/okwen_foa1c_r16_LF2016/ \
 --foa_run foa1c_r16 \
