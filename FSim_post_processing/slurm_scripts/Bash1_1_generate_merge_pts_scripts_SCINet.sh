@@ -45,7 +45,7 @@ module load miniconda
 source activate r_env2
 
 #Run the R script
-/home/laurel.sindewald/.conda/envs/r_env2/bin/Rscript FSim_post_processing2_merge_run_parts.R \\
+/home/laurel.sindewald/.conda/envs/r_env2/bin/Rscript FSim_post_processing1_1_merge_run_parts_v2_gdb.R \\
 --working_directory ${output_dir}/ \\
 --foa_run ${foa_run} \\
 --scenario ${scenario} \\
