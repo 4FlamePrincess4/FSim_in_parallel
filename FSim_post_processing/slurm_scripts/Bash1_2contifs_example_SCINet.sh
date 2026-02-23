@@ -25,7 +25,7 @@ module load miniconda
 source activate r_env2
 
 # Run the R script
-/home/laurel.sindewald/.conda/envs/r_env2/bin/Rscript FSim_post_processing1_merge_fire_tifs_v11_Scenario_refact_of_the_Nordgren.R
+/home/laurel.sindewald/.conda/envs/r_env2/bin/Rscript FSim_post_processing1_2_merge_fire_tifs_v11_2_Scenario_refact_of_the_Nordgren.R
 --foa_lcp_path ./_inputs/lcp/lf2022_230_foa1c_120m.tif \
 --working_directory /project/wildland_fire_smoke_tradeoff/okwen_foa1c_r16_LF2022_RecOff3_2/ \
 --foa_run foa1c_r16 \
