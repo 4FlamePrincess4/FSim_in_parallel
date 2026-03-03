@@ -23,8 +23,9 @@ module load miniconda
 source activate r_env2
 
 #Run the R script
-/home/laurel.sindewald/.conda/envs/r_env2/bin/Rscript FSim_post_processing4_merge_FOAs.R \
+/home/laurel.sindewald/.conda/envs/r_env2/bin/Rscript FSim_post_processing2_4_merge_FOAs.R \
 --working_directory /project/wildland_fire_smoke_tradeoff/ \
 --scenario LF2022_RecOff3 \
 --run_timepoint time2 \
+--foa_seasons /project/wildland_fire_smoke_tradeoff/foa_seasons.csv \
 --study_area_lcp ./study_area_lcps/LF2020_220_OKAWEN_Colville_LCP_120m.tif
