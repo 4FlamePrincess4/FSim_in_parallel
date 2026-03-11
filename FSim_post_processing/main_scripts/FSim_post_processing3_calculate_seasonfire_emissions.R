@@ -17,15 +17,7 @@ option_list = list(
   make_option(c("-s", "--scenario"), type="character", default=NULL,
               help="project scenario (mandatory)", metavar="character"),
   make_option(c("-t", "--run_timepoint"), type="character", default=NULL,
-              help="timepoint for the scenario (mandatory)", metavar="character"),
-  make_option(c("-n", "--number_of_seasons"), type="integer", default=NULL,
-              help="total number of seasons (mandatory)", metavar="integer"),
-  make_option(c("--seasons_in_part"), type="integer", default=NULL,
-              help="number of seasons in a part", metavar="integer"),
-  make_option(c("--number_of_parts"), type="integer", default=NULL,
-              help="number of run parts", metavar="integer"),
-  make_option(c("-j", "--seasons_per_part"), type="character", default=NULL,
-              help="vector of number of seasons in a part", metavar="character")
+              help="timepoint for the scenario (mandatory)", metavar="character")
 )
 # parse the command-line options
 opt_parser = OptionParser(option_list=option_list)
@@ -43,12 +35,6 @@ wd <- getwd()
 
 #STEP 1: Record run information below 
 ###############################################
-# calculate or parse seasons_per_part
-if (is.null(opt$seasons_per_part)) {
-  seasons_per_part <- rep(opt$seasons_in_part, opt$number_of_parts)
-} else {
-  seasons_per_part <- as.integer(unlist(strsplit(opt$seasons_per_part, ",")))
-}
 # Set the optparse variables as local variables to then pass to furr_options() for parallelization
 foa_run <- opt$foa_run
 scenario <- opt$scenario
