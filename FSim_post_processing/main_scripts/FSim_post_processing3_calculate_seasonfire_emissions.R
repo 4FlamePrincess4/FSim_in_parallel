@@ -23,10 +23,6 @@ option_list = list(
 opt_parser = OptionParser(option_list=option_list)
 opt = parse_args(opt_parser)
 
-#Set the working directory to the specific outputs folder for the run
-setwd(opt$working_directory)
-wd <- getwd()
-
 #######################################################################################
 # NOTE: To run this code, you need to make sure the following FSim outputs are in the #
 #       working directory: the FireSizeList.csv files and the SeasonFires_merged_tifs #
@@ -40,6 +36,10 @@ foa_run <- opt$foa_run
 scenario <- opt$scenario
 run_timepoint <- opt$run_timepoint
 
+#Set the working directory to the specific outputs folder for the run
+setwd(opt$working_directory)
+wd <- getwd()
+
 # Create the output directory
 out_dir <- paste0("./SeasonFires_effects_tifs_", scenario, "_", run_timepoint)
 dir.create(out_dir, showWarnings = FALSE)
@@ -47,6 +47,8 @@ dir.create(out_dir, showWarnings = FALSE)
 #STEP 2: Add estimated emissions to the SeasonFire stack
 #############################################################
 tif_files <- list.files(opt$season_fires_directory, pattern = "\\.tif$", full.names=TRUE)
+#convert to absolute paths
+tif_files <- normalizePath(tif_files)
 
 # Set up parallel backend for a Linux cluster
 # Use `multicore` for single-node, or `cluster` with specified workers for multi-node
@@ -93,12 +95,16 @@ process_tif <- function(tif) {
   epm_stack <- rast(epm_path)
   
   # Multiply the ePM stack by the binary FL rasters
-  season_epm_stack <- epm_stack * fl_binary_stack
+  epm_stack <- crop(epm_stack, ext(fl_binary_stack))
+  fl_binary_stack <- crop(fl_binary_stack, ext(epm_stack))
+    season_epm_stack <- epm_stack * fl_binary_stack
   season_epm <- sum(season_epm_stack, na.rm=TRUE)
+  
   # Append to the season stack
+  season_stack <- crop(season_stack, season_epm)
   season_stack <- c(season_stack, season_epm)
   # Write to a new directory; if successful you can delete the old directory
-  writeRaster(season_stack, paste0("./SeasonFires_effects_tifs_", scenario, "_", run_timepoint,"/Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"))
+  writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"))
  
   # Extract the FireID, ArrivalDay, and ePM bands
   vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE, na.rm=TRUE)
@@ -127,8 +133,6 @@ process_tif <- function(tif) {
 
 # Apply the processing function in parallel to each tif file
 daily_ePM_summary <- future_map_dfr(tif_files, process_tif)
-
-
 
 # Write the results to CSV
 output_path <- paste0("./emissions_num_fires_area_burned_by_season_", foa_run, "_", scenario, "_", opt$run_timepoint, ".csv")
