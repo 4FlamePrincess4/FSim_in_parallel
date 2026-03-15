@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Usage: ./generate_overburn_est_scripts_SCINet.sh <study_area> <foa_run> <scenario> <run_timepoint> <job_name> <num_seasons> <seasons_in_part> <num_parts>
+# Usage: ./generate_overburn_est_scripts_SCINet.sh <study_area> <foa_run> <scenario> <run_timepoint> <job_name>
 
-if [ "$#" -ne 8 ]; then
-    echo "Usage: $0 <study_area> <foa_run> <scenario> <run_timepoint> <job_name> <num_seasons> <seasons_in_part> <num_parts>"
+if [ "$#" -ne 5 ]; then
+    echo "Usage: $0 <study_area> <foa_run> <scenario> <run_timepoint> <job_name>"
     exit 1
 fi
 
