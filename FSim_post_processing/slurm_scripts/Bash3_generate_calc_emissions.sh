@@ -12,9 +12,6 @@ foa_run=$2
 scenario=$3
 run_timepoint=$4
 job_name=$5
-num_seasons=$6
-seasons_in_part=$7
-num_parts=$8
 
 output_dir="/project/wildland_fire_smoke_tradeoff/${study_area}_${foa_run}_${scenario}_${run_timepoint}"
 script_name="${study_area}_${foa_run}_${scenario}_${run_timepoint}_estoverburn.sh"
