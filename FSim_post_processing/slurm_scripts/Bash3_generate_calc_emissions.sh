@@ -14,7 +14,7 @@ run_timepoint=$4
 job_name=$5
 
 output_dir="/project/wildland_fire_smoke_tradeoff/${study_area}_${foa_run}_${scenario}_${run_timepoint}"
-script_name="${study_area}_${foa_run}_${scenario}_${run_timepoint}_estoverburn.sh"
+script_name="${study_area}_${foa_run}_${scenario}_${run_timepoint}_calc_seasonfire_epm.sh"
 
 cat > "$script_name" <<EOL
 #!/bin/bash
