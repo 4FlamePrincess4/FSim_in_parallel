@@ -157,7 +157,7 @@ process_tif <- function(tif) {
 daily_ePM_summary <- future_map_dfr(tif_files, process_tif)
 
 # Write the results to CSV
-output_path <- paste0("./emissions_num_fires_area_burned_by_season_", foa_run, "_", scenario, "_", opt$run_timepoint, ".csv")
+output_path <- paste0("./SeasonFire_emissions_num_fires_area_burned_", foa_run, "_", scenario, "_", opt$run_timepoint, ".csv")
 write_csv(daily_ePM_summary, output_path)
 
 # Clean up parallel backend
