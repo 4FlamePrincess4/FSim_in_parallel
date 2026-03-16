@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Usage: ./generate_overburn_est_scripts_SCINet.sh <study_area> <foa_run> <scenario> <run_timepoint> <job_name>
+# Usage: ./generate_calculate_seasonfire_emissions_scripts_SCINet.sh <study_area> <foa_run> <scenario> <run_timepoint> <job_name>
 
 if [ "$#" -ne 5 ]; then
     echo "Usage: $0 <study_area> <foa_run> <scenario> <run_timepoint> <job_name>"
@@ -52,4 +52,4 @@ source activate r_env2
 --run_timepoint ${run_timepoint} 
 EOL
 
-echo "Generated SLURM script to estimate overburn for ${study_area} ${foa_run}, scenario ${scenario}, run timepoint ${run_timepoint}."
+echo "Generated SLURM script to calculate seasonfire emissions rasters for ${study_area} ${foa_run}, scenario ${scenario}, run timepoint ${run_timepoint}."
