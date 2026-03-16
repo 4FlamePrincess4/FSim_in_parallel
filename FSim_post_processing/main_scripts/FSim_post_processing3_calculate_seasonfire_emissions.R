@@ -104,7 +104,7 @@ process_tif <- function(tif) {
   season_stack <- crop(season_stack, season_epm)
   season_stack <- c(season_stack, season_epm)
   pixel_area <- prod(res(season_stack))
-  season_stack[[4]] <- terra::app(season_stack[[4]], fun=function(i){i*907.185 / 4046.86*pixel_area})
+  season_stack[[4]] <- terra::app(season_stack[[4]], fun=function(i)i*907.185 / 4046.86*pixel_area)
   names(season_stack[[4]]) <- "ePM_kg"
   # Write to a new directory; if successful you can delete the old directory
   writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"), overwrite=TRUE)
