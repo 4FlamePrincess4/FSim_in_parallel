@@ -104,7 +104,7 @@ process_tif <- function(tif) {
   season_stack <- crop(season_stack, season_epm)
   season_stack <- c(season_stack, season_epm)
   # Write to a new directory; if successful you can delete the old directory
-  writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"))
+  writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"), overwrite=TRUE)
  
   # Extract the FireID, ArrivalDay, and ePM bands
   vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE, na.rm=TRUE)
