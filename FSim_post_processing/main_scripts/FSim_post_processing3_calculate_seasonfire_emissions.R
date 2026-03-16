@@ -114,7 +114,7 @@ process_tif <- function(tif) {
   # EPM (kg) = EPM (ton/acre) * (907.185 kg / 1 ton)*(1 acre /4046.86 m2)*(pixel_area_m2)*(number of pixels)
   pixel_area <- prod(res(season_stack))
   
-  daily_summary <- df %>%
+  daily_summary <- vals %>%
     group_by(JulianDay) %>%
     summarise(
       num_active_fires = n_distinct(FireID),
