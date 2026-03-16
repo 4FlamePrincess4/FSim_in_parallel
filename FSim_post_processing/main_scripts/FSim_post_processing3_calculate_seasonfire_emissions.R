@@ -103,6 +103,9 @@ process_tif <- function(tif) {
   # Append to the season stack
   season_stack <- crop(season_stack, season_epm)
   season_stack <- c(season_stack, season_epm)
+  pixel_area <- prod(res(season_stack))
+  season_stack[[4]] <- terra::app(season_stack[[4]], fun=function(i){i*907.185 / 4046.86*pixel_area})
+  names(season_stack[[4]]) <- "ePM_kg"
   # Write to a new directory; if successful you can delete the old directory
   writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"), overwrite=TRUE)
  
@@ -112,8 +115,7 @@ process_tif <- function(tif) {
   
   #We'll need emissions in kg
   # EPM (kg) = EPM (ton/acre) * (907.185 kg / 1 ton)*(1 acre /4046.86 m2)*(pixel_area_m2)*(number of pixels)
-  pixel_area <- prod(res(season_stack))
-  
+    
   daily_summary <- vals %>%
     group_by(JulianDay) %>%
     summarise(
