@@ -27,6 +27,8 @@ cat > "$script_name" <<EOL
 #SBATCH --time=02-00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=96
+#SBATCH --constraint=AMD
+#SBATCH --mem-per-cpu=4096
 #SBATCH --output=${output_dir}/_error/${foa_run}_pt${part}_${scenario}_${run_timepoint}_calc_emissions_slurmlog_%A.out
 #SBATCH --error=${output_dir}/_error/${foa_run}_pt${part}_${scenario}_${run_timepoint}_calc_emissions_error_%A.log
 #SBATCH --mail-user=laurel.sindewald@usda.gov
