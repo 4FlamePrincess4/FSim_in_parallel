@@ -111,7 +111,7 @@ process_tif <- function(tif) {
   writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"), overwrite=TRUE)
  
   # Extract the FireID, ArrivalDay, and ePM bands
-  vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE, na.rm=TRUE)
+  vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE)
   names(vals) <- c("FireID","JulianDay","ePM")
   
   #We'll need emissions in kg
@@ -130,6 +130,18 @@ process_tif <- function(tif) {
     mutate(Season = season_number) %>%
     relocate(Season) %>%
     mutate(daily_ePM_kg = daily_ePM_tonnes_per_acre * 907.185 / 4046.86 * area_burned_m2)
+
+  if (nrow(vals) == 0) {
+    return(data.frame(
+      Season = season_number,
+      JulianDay = NA,
+      num_active_fires = 0,
+      num_pixels_burned = 0,
+      area_burned_m2 = 0,
+      daily_ePM_tonnes_per_acre = 0,
+      daily_ePM_kg = 0
+    ))
+  }
   
   daily_summary
 }
