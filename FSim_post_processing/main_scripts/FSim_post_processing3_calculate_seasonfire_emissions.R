@@ -41,7 +41,7 @@ setwd(opt$working_directory)
 wd <- getwd()
 
 # Create the output directory
-out_dir <- paste0("./SeasonFires_effects_tifs_", scenario, "_", run_timepoint)
+out_dir <- paste0("./SeasonFires_effects_tifs_", scenario, "_", run_timepoint, "/")
 dir.create(out_dir, showWarnings = FALSE)
 
 #STEP 2: Add estimated emissions to the SeasonFire stack
