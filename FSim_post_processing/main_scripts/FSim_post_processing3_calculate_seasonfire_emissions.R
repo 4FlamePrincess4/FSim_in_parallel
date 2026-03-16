@@ -63,7 +63,7 @@ log_message <- function(message) {
   cat(message, "\n", file = log_file, append = TRUE)
 }
 
-log_message(paste0("Processing began at ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+log_message(paste0("Processing began at ", format(Sys.time(), "%Y-%m-%d %H:%M:%S")))
 
 # Define the processing function for a single tif
 process_tif <- function(tif) {
@@ -144,4 +144,4 @@ write_csv(daily_ePM_summary, output_path)
 # Clean up parallel backend
 plan(sequential)
 
-log_message(paste0("Processing ended at ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"))
+log_message(paste0("Processing ended at ", format(Sys.time(), "%Y-%m-%d %H:%M:%S")))
