@@ -68,7 +68,13 @@ log_message(paste0("Processing began at ", format(Sys.time(), "%Y-%m-%d %H:%M:%S
 # Define the processing function for a single tif
 process_tif <- function(tif) {
   # Extract the season number from the filename using a regular expression
-  season_number <- as.numeric(sub(".*Season([0-9]+)_.*", "\\1", basename(tif)))
+  season_number <- as.integer(
+    stringr::str_extract(basename(tif), "(?<=Season)[0-9]+")
+  )
+
+  if (is.na(season_number)) {
+    stop(paste("Failed to parse season from:", tif))
+  }
     
   # Load the SeasonFire raster stack - we need all three layers
   season_stack <- rast(tif)
