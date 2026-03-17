@@ -1,5 +1,5 @@
 library(tidyverse)
-library(raster)
+library(terra)
 library(optparse)
 
 # Set up input arguments with optparse
@@ -29,10 +29,10 @@ merged_dir <- paste0("./okawen_", opt$run_timepoint, "_", opt$scenario, "_merged
 dir.create(merged_dir, showWarnings = FALSE)
 
 # Read the study area raster and extract CRS, origin, and extent
-study_area <- raster(opt$study_area_lcp)
+study_area <- rast(opt$study_area_lcp)
 study_area_crs <- crs(study_area)
 study_area_origin <- origin(study_area)
-study_area_extent <- extent(study_area)
+study_area_extent <- ext(study_area)
 
 # Read in the foa weights for weighted averaging
 if (is.null(opt$foa_seasons_csv)) {
@@ -89,45 +89,44 @@ for (pattern in patterns) {
   if(pattern == ".*FullRun_bp\\.tif$"){
     # Load and process the rasters
     processed_rasters <- lapply(matched_files, function(file) {
-      r <- raster(file)
+      r <- rast(file)
       # Match CRS, origin, and extent to the study area
       crs(r) <- study_area_crs
       origin(r) <- study_area_origin
-      r <- raster::extend(r, study_area_extent, value = NA)
+      r <- terra::extend(r, study_area_extent)
       return(r)
     })
     # Merge the processed rasters
-    stacked <- stack(processed_rasters)
-    merged_raster <- calc(stacked, sum, na.rm = TRUE)
-    #merged_raster <- do.call(raster::mosaic, c(processed_rasters, fun = sum, na.rm = TRUE, tolerance = 4))
+    stacked <- rast(processed_rasters)
+    merged_raster <- terra::app(stacked, sum, na.rm = TRUE)
     # Define the output filename
     output_filename <- paste0(
       merged_dir, "/okawen_", opt$run_timepoint, "_", opt$scenario, "_", 
       sub(".*FullRun_", "FullRun_", sub("\\\\.tif\\$", "", pattern)), "_merged.tif"
     )
     # Save the merged raster
-    writeRaster(merged_raster, output_filename, format = "GTiff", overwrite = TRUE)
+    writeRaster(merged_raster, output_filename, overwrite = TRUE)
     message(paste("Merged raster saved to:", output_filename))
   } else {  # Separate process for the CFLP rasters (BP-conditioned)
     # Load, align, and weight CFLP rasters by BP × seasons
     weighted_cflp <- lapply(matched_files, function(file) {
     # CFLP raster
-    cflp <- raster(file)
+    cflp <- rast(file)
     # Corresponding BP raster
     bp_file <- sub("_cflp_[^/]+\\.tif$", "_bp.tif", file)
     if (!file.exists(bp_file)) {
       stop(paste("Missing BP raster for:", file))
     }
-    bp <- raster(bp_file)
+    bp <- rast(bp_file)
     # Match CRS, origin, extent
     crs(cflp) <- study_area_crs
     origin(cflp) <- study_area_origin
-    cflp <- raster::extend(cflp, study_area_extent, value = NA)
+    cflp <- terra::extend(cflp, study_area_extent)
     crs(bp) <- study_area_crs
     origin(bp) <- study_area_origin
-    bp <- raster::extend(bp, study_area_extent, value = NA)
+    bp <- terra::extend(bp, study_area_extent)
     # Mask the CFLP raster wherever the BP is NA
-    cflp <- raster::mask(cflp, bp)
+    cflp <- terra::mask(cflp, bp)
     # FOA weight
     this_dir <- dirname(file)
     n_seasons <- get_foa_weight(this_dir, foa_weights)
@@ -137,16 +136,16 @@ for (pattern in patterns) {
   # Denominator: BP × seasons
   weighted_bp <- lapply(matched_files, function(file) {
     bp_file <- sub("_cflp_[^/]+\\.tif$", "_bp.tif", file)
-    bp <- raster(bp_file)
+    bp <- rast(bp_file)
     crs(bp) <- study_area_crs
     origin(bp) <- study_area_origin
-    bp <- raster::extend(bp, study_area_extent, value = NA)
+    bp <- terra::extend(bp, study_area_extent)
     n_seasons <- get_foa_weight(dirname(file), foa_weights)
     bp * n_seasons
   })
   # Sum numerator
-  cflp_sum <- calc(stack(weighted_cflp), sum, na.rm = TRUE)
-  bp_sum   <- calc(stack(weighted_bp), sum, na.rm = TRUE)
+  cflp_sum <- terra::app(rast(weighted_cflp), sum, na.rm = TRUE)
+  bp_sum   <- terra::app(rast(weighted_bp), sum, na.rm = TRUE)
   # Final conditional CFLP
   merged_raster <- cflp_sum / bp_sum
   # Output filename
@@ -154,9 +153,6 @@ for (pattern in patterns) {
     merged_dir, "/okawen_", opt$run_timepoint, "_", opt$scenario, "_",
     sub(".*FullRun_", "FullRun_", sub("\\\\.tif\\$", "", pattern)), "_merged.tif"
   )
-  writeRaster(merged_raster,
-              output_filename,
-              format = "GTiff",
-              overwrite = TRUE)
+  writeRaster(merged_raster, output_filename, overwrite = TRUE)
   message(paste("BP-weighted CFLP raster saved to:", output_filename))
 }}
