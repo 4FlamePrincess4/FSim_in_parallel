@@ -60,7 +60,7 @@ run_label <- paste0(opt$scenario, "_", opt$run_timepoint)
 
 # Locate subdirectories containing the scenario in their names
 target_dirs <- list.dirs(path = wd, recursive = FALSE, full.names = TRUE) %>%
-  .[grepl(run_label, .)]
+  .[grepl(paste0(run_label, "$"), .)]
 if (length(target_dirs) == 0) {
   stop("No matching directories found for the specified scenario.")
 }
