@@ -112,10 +112,6 @@ process_tif <- function(tif) {
   season_stack <- c(season_stack, season_epm)
   pixel_area <- prod(res(season_stack))
 
-  # Extract the FireID, ArrivalDay, and ePM bands
-  # Do this before converting EPM so that you hae ePM in tonnes/acre and in kg in the summary csv
-  vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE)
-  names(vals) <- c("FireID","JulianDay","ePM")
   
   #We'll need emissions in kg
   # EPM (kg) = EPM (ton/acre) * (907.185 kg / 1 ton)*(1 acre /4046.86 m2)*(pixel_area_m2)*(number of pixels)
@@ -123,20 +119,25 @@ process_tif <- function(tif) {
   names(season_stack[[4]]) <- "ePM_kg"
   # Write to a new directory; if successful you can delete the old directory
   writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"), overwrite=TRUE)
+
+  # Extract the FireID, ArrivalDay, and ePM bands
+  # Do this before converting EPM so that you hae ePM in tonnes/acre and in kg in the summary csv
+  vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE)
+  names(vals) <- c("FireID","JulianDay","ePM")
+  vals <- vals[!is.na(vals$JulianDay), ]
      
   daily_summary <- vals %>%
-    group_by(JulianDay) %>%
-    summarise(
-      num_active_fires = n_distinct(FireID),
-      num_pixels_burned = n(),
-      area_burned_m2 = n()*pixel_area,
-      daily_ePM_tonnes_per_acre = sum(ePM, na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
-    arrange(JulianDay) %>%
-    mutate(Season = season_number) %>%
-    relocate(Season) %>%
-    mutate(daily_ePM_kg = daily_ePM_tonnes_per_acre * 907.185 / 4046.86 * area_burned_m2)
+  group_by(JulianDay) %>%
+  summarise(
+    num_active_fires = n_distinct(FireID),
+    num_pixels_burned = n(),
+    area_burned_m2 = n()*pixel_area,
+    daily_ePM_kg = sum(ePM_kg, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(JulianDay) %>%
+  mutate(Season = season_number) %>%
+  relocate(Season)
 
   if (nrow(vals) == 0) {
     return(data.frame(
@@ -145,7 +146,6 @@ process_tif <- function(tif) {
       num_active_fires = 0,
       num_pixels_burned = 0,
       area_burned_m2 = 0,
-      daily_ePM_tonnes_per_acre = 0,
       daily_ePM_kg = 0
     ))
   }
