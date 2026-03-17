@@ -97,7 +97,9 @@ for (pattern in patterns) {
       return(r)
     })
     # Merge the processed rasters
-    merged_raster <- do.call(raster::mosaic, c(processed_rasters, fun = sum, na.rm = TRUE, tolerance = 4))
+    stacked <- stack(processed_rasters)
+    merged_raster <- calc(stacked, sum, na.rm = TRUE)
+    #merged_raster <- do.call(raster::mosaic, c(processed_rasters, fun = sum, na.rm = TRUE, tolerance = 4))
     # Define the output filename
     output_filename <- paste0(
       merged_dir, "/okawen_", opt$run_timepoint, "_", opt$scenario, "_", 
@@ -143,13 +145,8 @@ for (pattern in patterns) {
     bp * n_seasons
   })
   # Sum numerator
-  cflp_sum <- do.call(raster::mosaic,
-            c(weighted_cflp, fun = sum, na.rm = TRUE))
-  message(paste("cflp sum (numerator) is equal to ", cflp_sum))
-  # Sum denominator
-  bp_sum <- do.call(raster::mosaic,
-            c(weighted_bp, fun = sum, na.rm = TRUE))
-  message(paste("bp sum (denominator) is equal to ", bp_sum))
+  cflp_sum <- calc(stack(weighted_cflp), sum, na.rm = TRUE)
+  bp_sum   <- calc(stack(weighted_bp), sum, na.rm = TRUE)
   # Final conditional CFLP
   merged_raster <- cflp_sum / bp_sum
   # Output filename
