@@ -8,8 +8,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=64
 #SBATCH --mem-per-cpu=4096
-#SBATCH --output=/data001/projects/sindewal/okawen_foa1c_r16_LF2020_ME_S3_RO/_error/foa1c_r16_2016_calc_seasonfire_emissions_slurmlog_%A.out
-#SBATCH --error=/data001/projects/sindewal/okawen_foa1c_r16_LF2020_ME_S3_RO/_error/foa1c_r16_2016_calc_seasonfire_emissions1c_r16_2016_overburn_summary_error_%A.log
+#SBATCH --output=/data001/projects/sindewal/okawen_foa1c_r16_LF2020_ME_S3_RO/_error/foa1c_r16_LF2020_ME_S3_RO_calc_seasonfire_emissions_slurmlog_%A.out
+#SBATCH --error=/data001/projects/sindewal/okawen_foa1c_r16_LF2020_ME_S3_RO/_error/foa1c_r16_LF2020_ME_S3_RO_calc_seasonfire_emissions1c_r16_2016_overburn_summary_error_%A.log
 #SBATCH --mail-user=laurel.sindewald@ucdenver.edu
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
