@@ -104,14 +104,13 @@ process_tif <- function(tif) {
   # Multiply the ePM stack by the binary FL rasters
   epm_stack <- crop(epm_stack, ext(fl_binary_stack))
   fl_binary_stack <- crop(fl_binary_stack, ext(epm_stack))
-    season_epm_stack <- epm_stack * fl_binary_stack
+  season_epm_stack <- epm_stack * fl_binary_stack
   season_epm <- sum(season_epm_stack, na.rm=TRUE)
   
   # Append to the season stack
   season_stack <- crop(season_stack, season_epm)
   season_stack <- c(season_stack, season_epm)
   pixel_area <- prod(res(season_stack))
-
   
   #We'll need emissions in kg
   # EPM (kg) = EPM (ton/acre) * (907.185 kg / 1 ton)*(1 acre /4046.86 m2)*(pixel_area_m2)*(number of pixels)
