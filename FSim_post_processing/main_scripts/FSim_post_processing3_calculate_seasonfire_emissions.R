@@ -125,6 +125,17 @@ process_tif <- function(tif) {
   vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE)
   names(vals) <- c("FireID","JulianDay","ePM")
   vals <- vals[!is.na(vals$JulianDay), ]
+
+ if (nrow(vals) == 0) {
+    return(data.frame(
+      Season = season_number,
+      JulianDay = NA,
+      num_active_fires = 0,
+      num_pixels_burned = 0,
+      area_burned_m2 = 0,
+      daily_ePM_kg = 0
+    ))
+  }
      
   daily_summary <- vals %>%
   group_by(JulianDay) %>%
@@ -139,17 +150,6 @@ process_tif <- function(tif) {
   mutate(Season = season_number) %>%
   relocate(Season)
 
-  if (nrow(vals) == 0) {
-    return(data.frame(
-      Season = season_number,
-      JulianDay = NA,
-      num_active_fires = 0,
-      num_pixels_burned = 0,
-      area_burned_m2 = 0,
-      daily_ePM_kg = 0
-    ))
-  }
-  
   daily_summary
 }
 
