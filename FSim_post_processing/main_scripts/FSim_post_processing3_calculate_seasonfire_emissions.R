@@ -123,7 +123,7 @@ process_tif <- function(tif) {
   # Extract the FireID, ArrivalDay, and ePM bands
   # Do this before converting EPM so that you hae ePM in tonnes/acre and in kg in the summary csv
   vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE)
-  names(vals) <- c("FireID","JulianDay","ePM")
+  names(vals) <- c("FireID","JulianDay","ePM_kg")
   vals <- vals[!is.na(vals$JulianDay), ]
 
  if (nrow(vals) == 0) {
