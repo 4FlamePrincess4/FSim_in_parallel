@@ -42,10 +42,6 @@ run_timepoint <- opt$run_timepoint
 setwd(opt$working_directory)
 wd <- getwd()
 
-# Create the output directory
-out_dir <- paste0("./SeasonFires_effects_tifs_", scenario, "_", run_timepoint, "/")
-dir.create(out_dir, showWarnings = FALSE)
-
 #STEP 2: Add estimated emissions to the SeasonFire stack
 #############################################################
 tif_files <- list.files(opt$season_fires_directory, pattern = "\\.tif$", full.names=TRUE)
@@ -107,7 +103,7 @@ process_tif <- function(tif) {
   epm_stack <- rast(epm_path)
   
   # Multiply the ePM stack by the binary FL rasters
-  epm_stack <- crop(epm_stack, okawen_15km_buf, mask=TRUE)
+  epm_stack <- terra::crop(epm_stack, ext(fl_binary_stack))
   season_epm_stack <- epm_stack * fl_binary_stack
   season_epm <- sum(season_epm_stack, na.rm=TRUE)
   
