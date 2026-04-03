@@ -8,6 +8,7 @@
 #SBATCH --time=07-00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=96
+#SBATCH --hint=nomultithread
 #SBATCH --mail-user=laurel.sindewald@usda.gov
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
