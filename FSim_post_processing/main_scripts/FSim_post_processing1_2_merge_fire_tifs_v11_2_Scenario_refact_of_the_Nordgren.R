@@ -416,8 +416,8 @@ process_overlaps <- function(each_season, this_season_fireIDs, this_season_foa_r
         accum_FL <- result$accum_FL
       }
   # Convert flame lengths from meters to feet
-  this_season_FL_stack <- accum_FL * 3.28084
-  season_fires_raster_stack <- c(accum_ID, accum_AD, this_season_FL_stack)
+  accum_FL <- accum_FL * 3.28084
+  season_fires_raster_stack <- c(accum_ID, accum_AD, accum_FL)
   names(season_fires_raster_stack) <- c("Fire_IDs", "Julian_Arrival_Days", "Flame_Lengths_ft")
   #plot(season_fires_raster_stack, main = paste0("Season ", each_season))
   #Write the resulting 3-band raster stack.
@@ -612,8 +612,8 @@ process_fire_season <- function(each_season) {
           accum_FL <- result$accum_FL
         }
         # Convert flame lengths from meters to feet
-        this_season_FL_stack <- accum_FL * 3.28084
-        season_fires_raster_stack <- c(accum_ID, accum_AD, this_season_FL_stack)
+        accum_FL <- accum_FL * 3.28084
+        season_fires_raster_stack <- c(accum_ID, accum_AD, accum_FL)
         names(season_fires_raster_stack) <- c("Fire_IDs", "Julian_Arrival_Days", "Flame_Lengths_ft")
         #plot(season_fires_raster_stack, main = paste0("Season ", each_season))
         #Write the resulting 3-band raster stack.
