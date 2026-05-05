@@ -17,7 +17,9 @@ option_list = list(
   make_option(c("-s", "--scenario"), type="character", default=NULL,
               help="project scenario (mandatory)", metavar="character"),
   make_option(c("-t", "--run_timepoint"), type="character", default=NULL,
-              help="timepoint for the scenario (mandatory)", metavar="character")
+              help="timepoint for the scenario (mandatory)", metavar="character"),
+  make_option(c("-a", "--study_area_polygon"), type="character", default=NULL,
+              help="study area polygon for summary (optional)", metavar="character")
 )
 # parse the command-line options
 opt_parser = OptionParser(option_list=option_list)
@@ -78,6 +80,12 @@ process_tif <- function(tif) {
     
   # Load the SeasonFire raster stack - we need all three layers
   season_stack <- rast(tif)
+
+   if (exists(opt$study_area_polygon)){
+    study_area_poly <- terra::vect(opt$study_area_polygon)
+    season_stack <- terra::crop(season_stack, study_area_poly, mask=TRUE)
+    log_message(paste0("Study area polygon used for summaries: ", opt$study_area_polygon))
+   }
   
   # Classify flame lengths
   fl <- season_stack[[3]]
@@ -96,33 +104,47 @@ process_tif <- function(tif) {
   # Multiply by expected emissions rasters
   # The directory will live in the parent folder - the scenario folder within which the FSim and FVS runs will occur
   fx_dir <- paste0("../", scenario, "_", run_timepoint, "_firefx/")
-  # Grab ePM raster stack
+  # Grab ePM and fcon raster stacks
   epm_path <- list.files(fx_dir, pattern="ePM",
                          full.names = TRUE)
   epm_stack <- rast(epm_path)
+  
+  fcon_path <- list.files(fx_dir, pattern="fcon",
+                         full.names = TRUE)
+  fcon_stack <- rast(fcon_path)
   
   # Multiply the ePM stack by the binary FL rasters
   epm_stack <- crop(epm_stack, ext(fl_binary_stack))
   fl_binary_stack <- crop(fl_binary_stack, ext(epm_stack))
   season_epm_stack <- epm_stack * fl_binary_stack
   season_epm <- sum(season_epm_stack, na.rm=TRUE)
+
+  # Multiply the fcon stack by the binary FL rasters
+  fcon_stack <- crop(fcon_stack, ext(fl_binary_stack))
+  fl_binary_stack <- crop(fl_binary_stack, ext(fcon_stack))
+  season_fcon_stack <- fcon_stack * fl_binary_stack
+  season_fcon <- sum(season_fcon_stack, na.rm=TRUE)
   
   # Append to the season stack
   season_stack <- crop(season_stack, season_epm)
   season_stack <- c(season_stack, season_epm)
+  season_stack <- crop(season_stack, season_fcon)
+  season_stack <- c(season_stack, season_fcon)
   pixel_area <- prod(res(season_stack))
   
   #We'll need emissions in kg
   # EPM (kg) = EPM (ton/acre) * (907.185 kg / 1 ton)*(1 acre /4046.86 m2)*(pixel_area_m2)*(number of pixels)
   season_stack[[4]] <- terra::app(season_stack[[4]], fun=function(i)i*907.185 / 4046.86*pixel_area)
   names(season_stack[[4]]) <- "ePM_kg"
+  # Not sure yet what fcon units should be, but putting in kg will make checks easy
+  season_stack[[5]] <- terra::app(season_stack[[5]], fun=function(i)i*907.185 / 4046.86*pixel_area)                        
+  names(season_stack[[5]]) <- "fcon_kg"
   # Write to a new directory; if successful you can delete the old directory
-  writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM.tif"), overwrite=TRUE)
+  writeRaster(season_stack, paste0(out_dir, "Season", season_number,"_merged_IDs_ADs_FLs_ePM_fcon.tif"), overwrite=TRUE)
 
-  # Extract the FireID, ArrivalDay, and ePM bands
-  # Do this before converting EPM so that you hae ePM in tonnes/acre and in kg in the summary csv
-  vals <- values(season_stack[[c(1,2,4)]], dataframe=TRUE)
-  names(vals) <- c("FireID","JulianDay","ePM_kg")
+  # Extract the FireID, ArrivalDay, ePM, and fcon bands
+  vals <- values(season_stack[[c(1,2,4,5)]], dataframe=TRUE)
+  names(vals) <- c("FireID","JulianDay","ePM_kg","fcon_kg")
   vals <- vals[!is.na(vals$JulianDay), ]
 
  if (nrow(vals) == 0) {
@@ -132,7 +154,8 @@ process_tif <- function(tif) {
       num_active_fires = 0,
       num_pixels_burned = 0,
       area_burned_m2 = 0,
-      daily_ePM_kg = 0
+      daily_ePM_kg = 0,
+      daily_fcon_kg = 0
     ))
   }
      
@@ -143,6 +166,7 @@ process_tif <- function(tif) {
     num_pixels_burned = n(),
     area_burned_m2 = n()*pixel_area,
     daily_ePM_kg = sum(ePM_kg, na.rm = TRUE),
+    daily_fcon_kg = sum(fcon_kg, na.rm=TRUE),
     .groups = "drop"
   ) %>%
   arrange(JulianDay) %>%
@@ -156,7 +180,7 @@ process_tif <- function(tif) {
 daily_ePM_summary <- future_map_dfr(tif_files, process_tif)
 
 # Write the results to CSV
-output_path <- paste0("./SeasonFire_emissions_num_fires_area_burned_", foa_run, "_", scenario, "_", opt$run_timepoint, ".csv")
+output_path <- paste0("./SeasonFire_emissions_fcon_num_fires_area_burned_", foa_run, "_", scenario, "_", opt$run_timepoint, ".csv")
 write_csv(daily_ePM_summary, output_path)
 
 # Clean up parallel backend
