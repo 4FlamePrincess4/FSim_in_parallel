@@ -81,7 +81,7 @@ process_tif <- function(tif) {
   # Load the SeasonFire raster stack - we need all three layers
   season_stack <- rast(tif)
 
-   if (exists(opt$study_area_polygon)){
+   if (!is.null(opt$study_area_polygon)){
     study_area_poly <- terra::vect(opt$study_area_polygon)
     season_stack <- terra::crop(season_stack, study_area_poly, mask=TRUE)
     log_message(paste0("Study area polygon used for summaries: ", opt$study_area_polygon))
