@@ -55,7 +55,7 @@ tif_files <- normalizePath(tif_files)
 # Set up parallel backend for a Linux cluster
 # Use `multicore` for single-node, or `cluster` with specified workers for multi-node
 # Replace `<number_of_cores>` with the number of cores available
-plan(multisession) # Or plan(cluster, workers = <number_of_cores>)
+plan(multisession, workers=48) # Or plan(cluster, workers = <number_of_cores>)
 
 # Specify log file path
 log_file <- paste0("./SeasonFire_emissions_log_", foa_run, "_", scenario, ".log")
