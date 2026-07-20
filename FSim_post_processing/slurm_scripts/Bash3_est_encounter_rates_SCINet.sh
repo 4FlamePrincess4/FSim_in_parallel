@@ -28,4 +28,6 @@ source activate r_env2
 --season_fires_directory ./SeasonFires_effects_tifs_LF2020_ME_S1_RO/ \
 --foa_run foa1c_r16 \
 --scenario LF2020 \
---run_timepoint ME_S1_RO 
+--run_timepoint ME_S1_RO \
+--study_area_polygon ./OkaWen_boundary_15km_buffer/OkaWen_boundary_15km_buffer.shp \
+--fdist_raster ./Rxfire27p_Dist111_Treatment.tif
