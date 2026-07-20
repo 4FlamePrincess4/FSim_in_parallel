@@ -2,7 +2,7 @@
 # Note: Before running this on Linux, you'll need to run this line to remove stupid Windows characters:
 # sed -i -e 's/\r$//' rename_tifs.sh
 
-#SBATCH --job-name=120cemis
+#SBATCH --job-name=1ME3encr
 #SBATCH --partition=math-alderaan
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -27,4 +27,6 @@ source /data001/projects/sindewal/anaconda3/bin/activate r_env2
 --season_fires_directory ./SeasonFires_merged_tifs_LF2020_ME_S3_RO/ \
 --foa_run foa1c_r16 \
 --scenario LF2020 \
---run_timepoint ME_S3_RO 
+--run_timepoint ME_S3_RO \
+--study_area_polygon ./OkaWen_boundary_15km_buffer/OkaWen_boundary_15km_buffer.shp \
+--fdist_raster ./Mechtx20p_Dist321_Treatment.tif
