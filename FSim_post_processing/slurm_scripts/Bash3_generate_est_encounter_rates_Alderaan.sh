@@ -22,7 +22,7 @@ cd /data001/projects/sindewal/FSim_in_parallel/FSim_post_processing/main_scripts
 source /data001/projects/sindewal/anaconda3/bin/activate r_env2
 
 # Run the R script
-/data001/projects/sindewal/anaconda3/envs/r_env2/bin/Rscript FSim_post_processing3_summarize_tx_encounter_rates.R \
+/data001/projects/sindewal/anaconda3/envs/r_env2/bin/Rscript FSim_post_processing3_summarize_treatment_encounter_rates.R \
 --working_directory /data001/projects/sindewal/okawen_foa1c_r16_LF2020_ME_S3_RO/ \
 --season_fires_directory ./SeasonFires_merged_tifs_LF2020_ME_S3_RO/ \
 --foa_run foa1c_r16 \
