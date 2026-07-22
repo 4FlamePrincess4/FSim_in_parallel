@@ -73,37 +73,35 @@ process_tif <- function(tif) {
   okawen_15km_buf <- terra::vect(opt$study_area_polygon)
   fdist_master <- terra::rast(opt$fdist_raster)
   fdist_master <- terra::crop(fdist_master, okawen_15km_buf, mask = TRUE)
-  
+
   # Extract the season number from the filename using a regular expression
   season_number <- as.integer(
     stringr::str_extract(basename(tif), "(?<=Season)[0-9]+")
   )
-  
+
   if (is.na(season_number)) {
     stop(paste("Failed to parse season from:", tif))
   }
-  
+
   # Load the SeasonFire raster stack - band 1 is FireID
   season_stack <- rast(tif)
   season_stack <- terra::crop(season_stack, okawen_15km_buf, mask = TRUE)
   fireid <- season_stack[[1]]
   names(fireid) <- "FireID"
-  
+
   # Align the FDist raster to this tif's extent/resolution
   fdist <- terra::crop(fdist_master, ext(fireid))
   if (!terra::compareGeom(fireid, fdist, stopOnError = FALSE)) {
     fdist <- terra::resample(fdist, fireid, method = "near")
   }
   names(fdist) <- "FDist"
-  
-  combined <- c(fireid, fdist)
-  pixel_area_km2 <- prod(res(combined)) / 1e6
-  
-  # Total burned area per fire, based on FireID alone (independent of FDist overlap)
-  fireid_vals <- values(fireid, dataframe = TRUE)
-  fireid_vals <- fireid_vals[!is.na(fireid_vals$FireID), ]
-  
-  if (nrow(fireid_vals) == 0) {
+
+  # Guard against a tif that doesn't actually overlap the study area polygon -
+  # crop(mask=TRUE) can return a zero-cell raster in that case, and values()
+  # on a zero-cell raster doesn't always come back as a clean 0-row data.frame
+  if (terra::ncell(fireid) == 0 || all(is.na(terra::minmax(fireid)))) {
+    log_message(paste0("WARNING: no overlap / no fire pixels found for ", basename(tif),
+                        " - skipping"))
     return(data.frame(
       Season = season_number,
       FireID = NA,
@@ -114,27 +112,46 @@ process_tif <- function(tif) {
       proportion_treated = NA
     ))
   }
-  
+
+  combined <- c(fireid, fdist)
+  pixel_area_km2 <- prod(res(combined)) / 1e6
+
+  # Total burned area per fire, based on FireID alone (independent of FDist overlap)
+  fireid_vals <- values(fireid, dataframe = TRUE)
+  fireid_vals <- fireid_vals[!is.na(fireid_vals$FireID), , drop = FALSE]
+
+  if (NROW(fireid_vals) == 0) {
+    return(data.frame(
+      Season = season_number,
+      FireID = NA,
+      mech_tx_area_km2 = 0,
+      rxfire_tx_area_km2 = 0,
+      total_area_km2 = 0,
+      total_burned_area_km2 = 0,
+      proportion_treated = NA
+    ))
+  }
+
   burned_area_summary <- fireid_vals %>%
     group_by(FireID) %>%
     summarise(total_burned_area_km2 = n() * pixel_area_km2, .groups = "drop")
-  
+
   vals <- values(combined, dataframe = TRUE)
-  vals <- vals[!is.na(vals$FireID) & !is.na(vals$FDist), ]
-  
-  if (nrow(vals) == 0) {
+  vals <- vals[!is.na(vals$FireID) & !is.na(vals$FDist), , drop = FALSE]
+
+  if (NROW(vals) == 0) {
     return(burned_area_summary %>%
-             mutate(
-               Season = season_number,
-               mech_tx_area_km2 = 0,
-               rxfire_tx_area_km2 = 0,
-               total_area_km2 = 0,
-               proportion_treated = 0
-             ) %>%
-             relocate(Season, FireID, mech_tx_area_km2, rxfire_tx_area_km2, total_area_km2,
-                      total_burned_area_km2, proportion_treated))
+      mutate(
+        Season = season_number,
+        mech_tx_area_km2 = 0,
+        rxfire_tx_area_km2 = 0,
+        total_area_km2 = 0,
+        proportion_treated = 0
+      ) %>%
+      relocate(Season, FireID, mech_tx_area_km2, rxfire_tx_area_km2, total_area_km2,
+                total_burned_area_km2, proportion_treated))
   }
-  
+
   vals <- vals %>%
     mutate(
       tx_type = case_when(
@@ -144,31 +161,31 @@ process_tif <- function(tif) {
       )
     ) %>%
     filter(!is.na(tx_type))
-  
-  if (nrow(vals) == 0) {
+
+  if (NROW(vals) == 0) {
     return(burned_area_summary %>%
-             mutate(
-               Season = season_number,
-               mech_tx_area_km2 = 0,
-               rxfire_tx_area_km2 = 0,
-               total_area_km2 = 0,
-               proportion_treated = 0
-             ) %>%
-             relocate(Season, FireID, mech_tx_area_km2, rxfire_tx_area_km2, total_area_km2,
-                      total_burned_area_km2, proportion_treated))
+      mutate(
+        Season = season_number,
+        mech_tx_area_km2 = 0,
+        rxfire_tx_area_km2 = 0,
+        total_area_km2 = 0,
+        proportion_treated = 0
+      ) %>%
+      relocate(Season, FireID, mech_tx_area_km2, rxfire_tx_area_km2, total_area_km2,
+                total_burned_area_km2, proportion_treated))
   }
-  
+
   fire_summary <- vals %>%
     group_by(FireID, tx_type) %>%
     summarise(n_pixels = n(), .groups = "drop") %>%
     mutate(area_km2 = n_pixels * pixel_area_km2) %>%
     select(FireID, tx_type, area_km2) %>%
     pivot_wider(names_from = tx_type, values_from = area_km2, values_fill = 0)
-  
+
   # Ensure both treatment columns exist even if one type never occurred this season
   if (!"mech" %in% names(fire_summary)) fire_summary$mech <- 0
   if (!"rxfire" %in% names(fire_summary)) fire_summary$rxfire <- 0
-  
+
   # Fires with no treatment overlap won't appear in fire_summary at all, so
   # left-join onto the full burned_area_summary (every fire that burned this season)
   fire_summary <- burned_area_summary %>%
@@ -179,12 +196,12 @@ process_tif <- function(tif) {
       rxfire_tx_area_km2 = replace_na(rxfire_tx_area_km2, 0),
       total_area_km2 = mech_tx_area_km2 + rxfire_tx_area_km2,
       proportion_treated = if_else(total_burned_area_km2 > 0,
-                                   total_area_km2 / total_burned_area_km2, NA_real_),
+                                    total_area_km2 / total_burned_area_km2, NA_real_),
       Season = season_number
     ) %>%
     relocate(Season, FireID, mech_tx_area_km2, rxfire_tx_area_km2, total_area_km2,
-             total_burned_area_km2, proportion_treated)
-  
+              total_burned_area_km2, proportion_treated)
+
   fire_summary
 }
 
